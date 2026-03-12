@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import { goto } from '$app/navigation';
 	import BookIcon from '@lucide/svelte/icons/book'
 	import HouseIcon from '@lucide/svelte/icons/house'
 	import SettingsIcon from '@lucide/svelte/icons/settings'
@@ -9,15 +10,18 @@
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import LogOutIcon from '@lucide/svelte/icons/log-out';
 	import MenuIcon from '@lucide/svelte/icons/menu';
-
-	import { Navigation } from '@skeletonlabs/skeleton-svelte';
+	import LogInIcon from '@lucide/svelte/icons/log-in';
+	import XIcon from '@lucide/svelte/icons/x';
 
 	let { children } = $props();
 
 	let collapsed = $state(false);
-	let hidden = $state(false);
+	let mobileOpen = $state(false);
 
 	const linksSidebar = {
+		main: [
+			{ label: 'Dashboard', href: '/dashboard', icon: HouseIcon },
+		],
 		management: [
 			{ label: 'Records', href: '/records', icon: ArchiveIcon },
 			{ label: 'Billing', href: '/billing', icon: BookIcon },
@@ -30,96 +34,120 @@
 		collapsed = !collapsed;
 	};
 
-	const toggleHidden = () => {
-		hidden = !hidden;
+	const toggleMobile = () => {
+		mobileOpen = !mobileOpen;
+	};
+
+	const closeMobile = () => {
+		mobileOpen = false;
+	};
+
+	const navigate = (href: string) => {
+		goto(href);
+		closeMobile();
 	};
 
 	const user = $derived(page.data.user);
 </script>
 
-<div class="w-full min-h-screen flex flex-col md:grid md:grid-cols-[auto_1fr] items-stretch border border-surface-200-800">
-	<!-- Mobile Toggle -->
-	<div class="md:hidden flex items-center justify-between p-4 bg-surface-100-900 border-b border-surface-200-800">
-		<div class="flex items-center gap-2">
-			<DollarSignIcon class="size-6 text-primary-500" />
-			<span class="text-lg font-bold">Stock Management</span>
-		</div>
-		<button class="btn-icon variant-filled-surface" onclick={toggleHidden}>
-			<MenuIcon class="size-6" />
+<div class="min-h-screen">
+	<!-- Mobile Header -->
+	<header class="md:hidden fixed top-0 left-0 right-0 z-30 flex items-center justify-between px-4 py-3 bg-surface-900 border-b border-surface-700">
+		<button class="flex items-center gap-2" onclick={toggleMobile}>
+			<MenuIcon class="size-6 text-white" />
+			<span class="text-lg font-bold text-white">Stock</span>
 		</button>
-	</div>
+		{#if user}
+			<form action="/login?/logout" method="POST">
+				<button class="btn btn-sm variant-soft-error">
+					<LogOutIcon class="size-4" />
+				</button>
+			</form>
+		{/if}
+	</header>
 
-	<Navigation 
-		layout="sidebar" 
-		class="grid grid-rows-[auto_1fr_auto] gap-4 {collapsed ? 'w-16' : 'w-64'} {hidden ? 'hidden' : 'fixed inset-0 z-50 md:relative md:flex'} transition-all duration-300 bg-surface-100-900 border-r border-surface-200-800"
+	<!-- Sidebar -->
+	<aside 
+		class="fixed top-0 left-0 h-full z-40 bg-surface-900 border-r border-surface-700 flex flex-col
+		w-64 transform transition-transform duration-300 ease-in-out
+		{mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+		{collapsed ? 'md:w-16' : ''}"
 	>
-		<Navigation.Header class="flex justify-between items-center px-2 py-4">
-			<div class="flex items-center gap-2">
-				<a href="/" class="btn-icon btn-icon-lg {isActive('/') ? 'preset-filled-primary-500' : 'preset-tonal-surface'}">
-					<DollarSignIcon class="size-6" />
-				</a>
+		<!-- Logo & Brand -->
+		<div class="flex items-center justify-between p-4 border-b border-surface-700">
+			<div class="flex items-center gap-2 overflow-hidden">
+				<div class="size-8 rounded-lg bg-primary-500 flex items-center justify-center shrink-0">
+					<DollarSignIcon class="size-5 text-white" />
+				</div>
 				{#if !collapsed}
-					<span class="text-lg font-bold">Stock</span>
+					<span class="text-lg font-bold text-white whitespace-nowrap">Stock Manager</span>
 				{/if}
 			</div>
-			<button class="md:hidden btn-icon" onclick={toggleHidden}>
-				<ChevronLeftIcon class="size-6" />
+			<button class="md:hidden text-white opacity-70 hover:opacity-100" onclick={closeMobile}>
+				<XIcon class="size-5" />
 			</button>
-		</Navigation.Header>
+		</div>
 
-		<Navigation.Content>
-			<Navigation.Group>
-				<Navigation.Menu>
-					<Navigation.TriggerAnchor 
-						href="/dashboard" 
-						class={isActive('/dashboard') ? 'preset-filled-primary-500' : ''}
-					>
-						<HouseIcon class="size-4" />
-						{#if !collapsed}
-							<Navigation.TriggerText>Dashboard</Navigation.TriggerText>
-						{/if}
-					</Navigation.TriggerAnchor>
-				</Navigation.Menu>
-			</Navigation.Group>
-
-			{#each Object.entries(linksSidebar) as [category, links]}
-				<Navigation.Group>
-					{#if !collapsed}
-						<Navigation.Label class="capitalize pl-2">{category}</Navigation.Label>
-					{/if}
-					<Navigation.Menu>
-						{#each links as link (link.href)}
-							{@const Icon = link.icon}
-							<Navigation.TriggerAnchor 
-								href={link.href} 
-								title={link.label} 
-								aria-label={link.label}
-								class={isActive(link.href) ? 'preset-filled-primary-500' : ''}
-							>
-								<Icon class="size-4" />
-								{#if !collapsed}
-									<Navigation.TriggerText>{link.label}</Navigation.TriggerText>
-								{/if}
-							</Navigation.TriggerAnchor>
-						{/each}
-					</Navigation.Menu>
-				</Navigation.Group>
-			{/each}
-		</Navigation.Content>
-
-		<Navigation.Footer class="flex flex-col gap-2 p-2">
+		<!-- Navigation -->
+		<nav class="flex-1 p-3 overflow-y-auto">
 			{#if user}
-				<div class="flex items-center gap-2 px-2 py-1 mb-2 bg-surface-200-800 rounded-lg overflow-hidden">
+				{#each Object.entries(linksSidebar) as [category, links]}
+					<div class="mb-4">
+						{#if !collapsed}
+							<p class="px-3 py-2 text-xs font-semibold text-surface-400 uppercase tracking-wider">{category}</p>
+						{/if}
+						<ul class="space-y-1">
+							{#each links as link}
+								{@const Icon = link.icon}
+								<li>
+									<button
+										onclick={() => navigate(link.href)}
+										class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all
+										{isActive(link.href) 
+											? 'bg-primary-500 text-white' 
+											: 'text-surface-300 hover:bg-surface-800 hover:text-white'}"
+										title={link.label}
+									>
+										<Icon class="size-5 shrink-0" />
+										{#if !collapsed}
+											<span class="whitespace-nowrap">{link.label}</span>
+										{/if}
+									</button>
+								</li>
+							{/each}
+						</ul>
+					</div>
+				{/each}
+			{:else}
+				<div class="px-3 py-2">
+					<p class="text-xs text-surface-500 mb-2">Sign in to access</p>
+					<button
+						onclick={() => navigate('/login')}
+						class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-surface-300 hover:bg-surface-800 hover:text-white transition-all"
+					>
+						<LogInIcon class="size-5 shrink-0" />
+						{#if !collapsed}
+							<span>Login / Sign Up</span>
+						{/if}
+					</button>
+				</div>
+			{/if}
+		</nav>
+
+		<!-- Footer -->
+		<div class="p-3 border-t border-surface-700">
+			{#if user}
+				<div class="flex items-center gap-3 px-3 py-2 mb-2 bg-surface-800 rounded-lg">
 					<div class="size-8 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold shrink-0">
 						{user.username[0].toUpperCase()}
 					</div>
 					{#if !collapsed}
-						<div class="flex-1 overflow-hidden">
-							<p class="text-sm font-bold truncate">{user.username}</p>
-							<p class="text-xs opacity-60 truncate">{user.role}</p>
+						<div class="flex-1 min-w-0">
+							<p class="text-sm font-medium text-white truncate">{user.username}</p>
+							<p class="text-xs text-surface-400 capitalize">{user.role}</p>
 						</div>
 						<form action="/login?/logout" method="POST">
-							<button class="btn-icon btn-icon-sm variant-soft-error">
+							<button class="btn-icon btn-icon-sm text-surface-400 hover:text-error-500">
 								<LogOutIcon class="size-4" />
 							</button>
 						</form>
@@ -127,34 +155,51 @@
 				</div>
 			{/if}
 			
-			<div class="flex gap-2">
-				<button 
-					class="btn-icon variant-soft flex-1 justify-center"
+			<div class="flex items-center gap-2">
+				<button
 					onclick={toggleSidebar}
-					aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+					class="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-surface-400 hover:bg-surface-800 hover:text-white transition-all"
+					title={collapsed ? 'Expand' : 'Collapse'}
 				>
 					{#if collapsed}
-						<ChevronRightIcon class="size-4" />
+						<ChevronRightIcon class="size-5" />
 					{:else}
-						<ChevronLeftIcon class="size-4" />
+						<ChevronLeftIcon class="size-5" />
 					{/if}
 				</button>
-				<Navigation.TriggerAnchor 
-					href="/settings" 
-					title="Settings" 
-					aria-label="Settings" 
-					class="variant-soft {isActive('/settings') ? 'preset-filled-primary-500' : ''}"
+				<button
+					onclick={() => navigate('/settings')}
+					class="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all
+					{isActive('/settings') 
+						? 'bg-primary-500 text-white' 
+						: 'text-surface-400 hover:bg-surface-800 hover:text-white'}"
+					title="Settings"
 				>
-					<SettingsIcon class="size-4" />
+					<SettingsIcon class="size-5" />
 					{#if !collapsed}
-						<Navigation.TriggerText>Settings</Navigation.TriggerText>
+						<span>Settings</span>
 					{/if}
-				</Navigation.TriggerAnchor>
+				</button>
 			</div>
-		</Navigation.Footer>
-	</Navigation>
+		</div>
+	</aside>
 
-	<main class="p-4 min-h-screen bg-surface-50-950 flex-1 overflow-x-hidden">
-		{@render children()}
+	<!-- Mobile Overlay -->
+	{#if mobileOpen}
+		<button 
+			class="fixed inset-0 z-30 bg-black/60 md:hidden"
+			onclick={closeMobile}
+			aria-label="Close menu"
+		></button>
+	{/if}
+
+	<!-- Main Content -->
+	<main 
+		class="min-h-screen bg-surface-50-900 transition-all duration-300 pt-16 md:pt-0
+		{collapsed ? 'md:pl-16' : 'md:pl-64'}"
+	>
+		<div class="p-4 md:p-8 max-w-7xl mx-auto">
+			{@render children()}
+		</div>
 	</main>
 </div>

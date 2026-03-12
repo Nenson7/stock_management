@@ -13,31 +13,36 @@
 <div class="space-y-6">
 	<header class="flex justify-between items-center">
 		<div>
-			<h1 class="h1">Product Records</h1>
-			<p class="opacity-60">Manage your inventory and stock levels.</p>
+			<h1 class="h1 text-white">Product Records</h1>
+			<p class="text-surface-400">Manage your inventory and stock levels.</p>
 		</div>
-		<button class="btn variant-filled-primary" onclick={() => showAddModal = !showAddModal}>
-			<PlusIcon class="size-4 mr-2" />
-			Add Product
-		</button>
+		{#if data.user?.role === 'admin'}
+			<button class="btn variant-filled-primary" onclick={() => showAddModal = !showAddModal}>
+				<PlusIcon class="size-4 mr-2" />
+				Add Product
+			</button>
+		{/if}
 	</header>
 
 	{#if showAddModal}
-		<div class="card p-6 border border-surface-200-800 bg-surface-100-900 shadow-xl rounded-xl mb-6">
-			<h2 class="h2 mb-4">Add New Product</h2>
+		<div class="card p-6 bg-surface-800 border border-surface-700 shadow-xl rounded-xl mb-6">
+			<h2 class="h2 text-white mb-4">Add New Product</h2>
 			<form method="POST" action="?/add" use:enhance={() => {
-				return async ({ result }) => {
-					if (result.type === 'success') showAddModal = false;
-				};
-			}} class="grid grid-cols-1 md:grid-cols-2 gap-4">
+			return async ({ result }) => {
+				if (result.type === 'success') {
+					showAddModal = false;
+					(window as any).showToast?.('Product added successfully!', 'success');
+				}
+			};
+		}} class="grid grid-cols-1 md:grid-cols-2 gap-4">
 				<label class="label">
-					<span>Product Name</span>
-					<input class="input" type="text" name="name" required placeholder="e.g. Arabica Beans" />
+					<span class="text-surface-300">Product Name</span>
+					<input class="input bg-surface-900 border-surface-700 text-white" type="text" name="name" required placeholder="e.g. Arabica Beans" />
 				</label>
 				
 				<label class="label">
-					<span>Category</span>
-					<select class="select" name="category" required>
+					<span class="text-surface-300">Category</span>
+					<select class="select bg-surface-900 border-surface-700 text-white" name="category" required>
 						{#each categories as cat}
 							<option value={cat}>{cat}</option>
 						{/each}
@@ -45,18 +50,18 @@
 				</label>
 
 				<label class="label">
-					<span>Price (in cents)</span>
-					<input class="input" type="number" name="price" required placeholder="1200" />
+					<span class="text-surface-300">Price (in cents)</span>
+					<input class="input bg-surface-900 border-surface-700 text-white" type="number" name="price" required placeholder="1200" />
 				</label>
 
 				<label class="label">
-					<span>Quantity</span>
-					<input class="input" type="number" name="quantity" required placeholder="50" />
+					<span class="text-surface-300">Quantity</span>
+					<input class="input bg-surface-900 border-surface-700 text-white" type="number" name="quantity" required placeholder="50" />
 				</label>
 
 				<label class="label md:col-span-2">
-					<span>Description</span>
-					<textarea class="textarea" name="description" placeholder="Optional product description"></textarea>
+					<span class="text-surface-300">Description</span>
+					<textarea class="textarea bg-surface-900 border-surface-700 text-white" name="description" placeholder="Optional product description"></textarea>
 				</label>
 
 				<div class="md:col-span-2 flex justify-end gap-2 pt-2">
@@ -67,11 +72,11 @@
 		</div>
 	{/if}
 
-	<div class="card bg-surface-100-900 border border-surface-200-800 rounded-xl overflow-hidden">
+	<div class="card bg-surface-800 border border-surface-700 rounded-xl overflow-hidden">
 		<div class="table-container">
 			<table class="table table-hover">
 				<thead>
-					<tr>
+					<tr class="text-surface-300">
 						<th>Product</th>
 						<th>Category</th>
 						<th>Price</th>
@@ -82,18 +87,18 @@
 				</thead>
 				<tbody>
 					{#each data.products as product (product.id)}
-						<tr>
+						<tr class="hover:bg-surface-700/50">
 							<td>
 								<div class="flex items-center gap-3">
-									<div class="size-8 rounded bg-surface-200-800 flex items-center justify-center">
-										<PackageIcon class="size-4" />
+									<div class="size-8 rounded bg-surface-700 flex items-center justify-center">
+										<PackageIcon class="size-4 text-surface-400" />
 									</div>
-									<span class="font-bold">{product.name}</span>
+									<span class="font-medium text-white">{product.name}</span>
 								</div>
 							</td>
-							<td><span class="badge variant-soft-surface">{product.category}</span></td>
-							<td>${(product.price / 100).toFixed(2)}</td>
-							<td>{product.quantity}</td>
+							<td class="text-surface-300">{product.category}</td>
+							<td class="text-white">${(product.price / 100).toFixed(2)}</td>
+							<td class="text-white">{product.quantity}</td>
 							<td>
 								{#if product.quantity > 20}
 									<span class="badge variant-filled-success">In Stock</span>
@@ -104,18 +109,28 @@
 								{/if}
 							</td>
 							<td class="text-right">
-								<form method="POST" action="?/delete" use:enhance class="inline">
-									<input type="hidden" name="id" value={product.id} />
-									<button class="btn-icon btn-icon-sm variant-soft-error">
-										<TrashIcon class="size-4" />
-									</button>
-								</form>
+								{#if data.user?.role === 'admin'}
+									<form method="POST" action="?/delete" use:enhance={() => {
+										return async ({ result }) => {
+											if (result.type === 'success') {
+												(window as any).showToast?.('Product deleted', 'success');
+											}
+										};
+									}} class="inline">
+										<input type="hidden" name="id" value={product.id} />
+										<button class="btn-icon btn-icon-sm variant-soft-error">
+											<TrashIcon class="size-4" />
+										</button>
+									</form>
+								{:else}
+									<span class="text-xs text-surface-500 italic">Read-only</span>
+								{/if}
 							</td>
 						</tr>
 					{/each}
 					{#if data.products.length === 0}
 						<tr>
-							<td colspan="6" class="text-center py-8 opacity-60">No products found. Add your first product to get started.</td>
+							<td colspan="6" class="text-center py-8 text-surface-500">No products found. Add your first product to get started.</td>
 						</tr>
 					{/if}
 				</tbody>

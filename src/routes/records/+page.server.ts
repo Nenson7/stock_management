@@ -12,7 +12,10 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-	add: async ({ request }) => {
+	add: async ({ request, locals }) => {
+		if (!locals.user || locals.user.role !== 'admin') {
+			return fail(403, { message: 'Only admins can add products' });
+		}
 		const formData = await request.formData();
 		const name = formData.get('name') as string;
 		const price = parseInt(formData.get('price') as string);
@@ -36,7 +39,10 @@ export const actions: Actions = {
 
 		return { success: true };
 	},
-	delete: async ({ request }) => {
+	delete: async ({ request, locals }) => {
+		if (!locals.user || locals.user.role !== 'admin') {
+			return fail(403, { message: 'Only admins can delete products' });
+		}
 		const formData = await request.formData();
 		const id = formData.get('id') as string;
 		if (id) {
