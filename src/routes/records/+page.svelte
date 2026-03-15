@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import TrashIcon from '@lucide/svelte/icons/trash-2';
 	import PackageIcon from '@lucide/svelte/icons/package';
@@ -32,6 +33,7 @@
 				if (result.type === 'success') {
 					showAddModal = false;
 					(window as any).showToast?.('Product added successfully!', 'success');
+					await invalidateAll();
 				}
 			};
 		}} class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -114,6 +116,7 @@
 										return async ({ result }) => {
 											if (result.type === 'success') {
 												(window as any).showToast?.('Product deleted', 'success');
+												await invalidateAll();
 											}
 										};
 									}} class="inline">

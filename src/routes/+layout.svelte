@@ -2,8 +2,10 @@
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import Sidebar from '$lib/Sidebar.svelte';
-	import { Toast } from '@skeletonlabs/skeleton-svelte';
-	import { get } from 'svelte/store';
+	import CheckCircleIcon from '@lucide/svelte/icons/circle-check';
+	import XCircleIcon from '@lucide/svelte/icons/circle-x';
+	import InfoIcon from '@lucide/svelte/icons/circle-help';
+	import XIcon from '@lucide/svelte/icons/x';
 	
 	let { children, data } = $props();
 	
@@ -37,14 +39,21 @@
 <div class="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
 	{#each toasts as toast (toast.id)}
 		<div 
-			class="flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg max-w-sm animate-in slide-in-from-right
-			{toast.type === 'success' ? 'bg-success-500 text-white' : ''}
-			{toast.type === 'error' ? 'bg-error-500 text-white' : ''}
-			{toast.type === 'info' ? 'bg-primary-500 text-white' : ''}"
+			class="flex items-start gap-3 p-4 rounded-lg shadow-lg max-w-sm border animate-in
+			{toast.type === 'success' ? 'bg-success-500/90 border-success-400/50 text-white' : ''}
+			{toast.type === 'error' ? 'bg-error-500/90 border-error-400/50 text-white' : ''}
+			{toast.type === 'info' ? 'bg-primary-500/90 border-primary-400/50 text-white' : ''}"
 		>
+			{#if toast.type === 'success'}
+				<CheckCircleIcon class="size-5 flex-shrink-0 mt-0.5" />
+			{:else if toast.type === 'error'}
+				<XCircleIcon class="size-5 flex-shrink-0 mt-0.5" />
+			{:else}
+				<InfoIcon class="size-5 flex-shrink-0 mt-0.5" />
+			{/if}
 			<span class="flex-1">{toast.message}</span>
-			<button class="opacity-70 hover:opacity-100" onclick={() => removeToast(toast.id)} aria-label="Close notification">
-				<svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+			<button class="opacity-70 hover:opacity-100 flex-shrink-0" onclick={() => removeToast(toast.id)} aria-label="Close notification">
+				<XIcon class="size-4" />
 			</button>
 		</div>
 	{/each}

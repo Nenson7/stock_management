@@ -1,5 +1,7 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import UserIcon from '@lucide/svelte/icons/user';
+	import UserPlusIcon from '@lucide/svelte/icons/user-plus';
 
 	let { form } = $props();
 	let isRegistering = $state(false);
@@ -14,9 +16,11 @@
 	<div class="card p-8 shadow-2xl bg-surface-900 border border-surface-700 rounded-2xl">
 		<div class="text-center mb-6">
 			<div class="inline-flex items-center justify-center size-12 rounded-full bg-primary-500 mb-4">
-				<svg class="size-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-				</svg>
+				{#if isRegistering}
+					<UserPlusIcon class="size-6 text-white" />
+				{:else}
+					<UserIcon class="size-6 text-white" />
+				{/if}
 			</div>
 			<h1 class="h1 text-white">{isRegistering ? 'Create Account' : 'Welcome Back'}</h1>
 			<p class="text-surface-400 mt-2">{isRegistering ? 'Sign up to get started' : 'Sign in to your account'}</p>
@@ -27,55 +31,98 @@
 			action={isRegistering ? '?/register' : '?/login'} 
 			use:enhance={() => {
 				loading = true;
-				return async ({ result }) => {
+				return async ({ result, update }) => {
 					loading = false;
-					if (result.type === 'success') {
-						(window as any).showToast?.(isRegistering ? 'Account created successfully!' : 'Logged in successfully!', 'success');
-					}
+					await update();
 				};
 			}} 
 			class="space-y-4"
 		>
 			{#if isRegistering}
-				<label class="label">
-					<span class="text-surface-300">Full Name</span>
-					<input class="input bg-surface-800 border-surface-700 text-white" type="text" name="name" placeholder="John Doe" required />
-				</label>
+				<div class="space-y-2">
+					<label class="text-surface-300 text-sm font-medium" for="name">Full Name</label>
+					<input 
+						id="name" 
+						name="name" 
+						type="text" 
+						placeholder="John Doe" 
+						required 
+						class="input bg-surface-800 border border-surface-700 text-white rounded-lg px-4 py-2.5 w-full focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+					/>
+				</div>
 			{/if}
 
-			<label class="label">
-				<span class="text-surface-300">Username</span>
-				<input class="input bg-surface-800 border-surface-700 text-white" type="text" name="username" placeholder="Enter username" required />
-			</label>
+			<div class="space-y-2">
+				<label class="text-surface-300 text-sm font-medium" for="username">Username</label>
+				<input 
+					id="username" 
+					name="username" 
+					type="text" 
+					placeholder="Enter username" 
+					required 
+					class="input bg-surface-800 border border-surface-700 text-white rounded-lg px-4 py-2.5 w-full focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+				/>
+			</div>
 			
-			<label class="label">
-				<span class="text-surface-300">Password</span>
-				<input class="input bg-surface-800 border-surface-700 text-white" type="password" name="password" placeholder="••••••••" required />
-			</label>
+			<div class="space-y-2">
+				<label class="text-surface-300 text-sm font-medium" for="password">Password</label>
+				<input 
+					id="password" 
+					name="password" 
+					type="password" 
+					placeholder="••••••••" 
+					required 
+					class="input bg-surface-800 border border-surface-700 text-white rounded-lg px-4 py-2.5 w-full focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
+				/>
+			</div>
 
 			{#if isRegistering}
-				<label class="label">
-					<span class="text-surface-300">Role</span>
-					<select name="role" class="select bg-surface-800 border-surface-700 text-white" required>
+				<div class="space-y-2">
+					<label class="text-surface-300 text-sm font-medium" for="role">Role</label>
+					<select 
+						id="role" 
+						name="role" 
+						class="select bg-surface-800 border border-surface-700 text-white rounded-lg px-4 py-2.5 w-full focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all" 
+						required
+					>
 						<option value="user">Normal User</option>
 						<option value="admin">Administrator</option>
 					</select>
-				</label>
-			{/if}
-			
-			{#if form?.message}
-				<div class="p-3 bg-error-500/20 border border-error-500/50 text-error-200 rounded-lg text-sm text-center">
-					{form.message}
 				</div>
 			{/if}
 			
-			<button type="submit" class="btn variant-filled-primary w-full py-3 font-semibold transition-all hover:scale-[1.02] disabled:opacity-50" disabled={loading}>
-				{loading ? 'Please wait...' : (isRegistering ? 'Sign Up' : 'Sign In')}
+			{#if form?.message}
+				<div class="p-4 bg-error-500/20 border border-error-500/50 rounded-lg">
+					<p class="text-error-200 text-sm text-center">{form.message}</p>
+				</div>
+			{/if}
+			
+			<button 
+				type="submit" 
+				class="btn variant-filled-primary w-full py-3 font-semibold rounded-lg transition-all hover:scale-[1.02] hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+				disabled={loading}
+			>
+				{#if loading}
+					<span class="flex items-center justify-center gap-2">
+						<svg class="animate-spin h-5 w-5" viewBox="0 0 24 24">
+							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+						</svg>
+						Please wait...
+					</span>
+				{:else if isRegistering}
+					Sign Up
+				{:else}
+					Sign In
+				{/if}
 			</button>
 		</form>
 
 		<div class="mt-6 text-center">
-			<button class="text-primary-400 hover:text-primary-300 text-sm" onclick={toggleMode}>
+			<button 
+				class="text-primary-400 hover:text-primary-300 text-sm font-medium transition-colors"
+				onclick={toggleMode}
+			>
 				{isRegistering ? 'Already have an account? Sign In' : "Don't have an account? Sign Up"}
 			</button>
 		</div>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
 	import jsPDF from 'jspdf';
 	import autoTable from 'jspdf-autotable';
 	import FileTextIcon from '@lucide/svelte/icons/file-text';
@@ -72,6 +73,7 @@
 					if (result.type === 'success') {
 						showCreateModal = false;
 						(window as any).showToast?.('Invoice created successfully!', 'success');
+						await invalidateAll();
 					}
 				};
 			}} class="space-y-4">
