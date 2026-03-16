@@ -45,7 +45,7 @@
 						id="name" 
 						name="name" 
 						type="text" 
-						placeholder="John Doe" 
+						placeholder="Enter your name" 
 						required 
 						class="input bg-surface-800 border border-surface-700 text-white rounded-lg px-4 py-2.5 w-full focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
 					/>
@@ -70,7 +70,7 @@
 					id="password" 
 					name="password" 
 					type="password" 
-					placeholder="••••••••" 
+					placeholder="******" 
 					required 
 					class="input bg-surface-800 border border-surface-700 text-white rounded-lg px-4 py-2.5 w-full focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
 				/>
