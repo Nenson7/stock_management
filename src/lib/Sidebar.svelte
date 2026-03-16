@@ -3,7 +3,6 @@
 	import { goto } from '$app/navigation';
 	import BookIcon from '@lucide/svelte/icons/book'
 	import HouseIcon from '@lucide/svelte/icons/house'
-	import SettingsIcon from '@lucide/svelte/icons/settings'
 	import DollarSignIcon from '@lucide/svelte/icons/dollar-sign'
 	import ArchiveIcon from '@lucide/svelte/icons/archive';
 	import ChevronLeftIcon from '@lucide/svelte/icons/chevron-left';
@@ -12,36 +11,11 @@
 	import MenuIcon from '@lucide/svelte/icons/menu';
 	import LogInIcon from '@lucide/svelte/icons/log-in';
 	import XIcon from '@lucide/svelte/icons/x';
-	import SunIcon from '@lucide/svelte/icons/sun';
-	import MoonIcon from '@lucide/svelte/icons/moon';
 
 	let { children } = $props();
 
 	let collapsed = $state(false);
 	let mobileOpen = $state(false);
-	let darkMode = $state(true);
-
-	const toggleTheme = () => {
-		darkMode = !darkMode;
-		if (darkMode) {
-			document.documentElement.classList.add('dark');
-			localStorage.setItem('theme', 'dark');
-		} else {
-			document.documentElement.classList.remove('dark');
-			localStorage.setItem('theme', 'light');
-		}
-	};
-
-	$effect(() => {
-		const saved = localStorage.getItem('theme');
-		if (saved === 'light') {
-			darkMode = false;
-			document.documentElement.classList.remove('dark');
-		} else {
-			darkMode = true;
-			document.documentElement.classList.add('dark');
-		}
-	});
 
 	const linksSidebar = {
 		main: [
@@ -94,7 +68,7 @@
 	<!-- Sidebar -->
 	<aside 
 		class="fixed top-0 left-0 h-full z-40 bg-surface-900 border-r border-surface-700 flex flex-col
-		w-64 transform transition-transform duration-300 ease-in-out
+		w-64 transition-all duration-300 ease-in-out
 		{mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
 		{collapsed ? 'md:w-16' : ''}"
 	>
@@ -180,47 +154,18 @@
 				</div>
 			{/if}
 			
-			<div class="flex items-center gap-2 {collapsed ? 'flex-col' : ''}">
-				<button
-					onclick={toggleTheme}
-					class="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-surface-400 hover:bg-surface-800 hover:text-white transition-all w-full"
-					title={darkMode ? 'Switch to Light' : 'Switch to Dark'}
-				>
-					{#if darkMode}
-						<SunIcon class="size-5" />
-					{:else}
-						<MoonIcon class="size-5" />
-					{/if}
-					{#if !collapsed}
-						<span class="text-sm">{darkMode ? 'Light Mode' : 'Dark Mode'}</span>
-					{/if}
-				</button>
-				<button
-					onclick={toggleSidebar}
-					class="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-surface-400 hover:bg-surface-800 hover:text-white transition-all w-full"
-					title={collapsed ? 'Expand' : 'Collapse'}
-				>
-					{#if collapsed}
-						<ChevronRightIcon class="size-5" />
-					{:else}
-						<ChevronLeftIcon class="size-5" />
-						<span class="text-sm">Collapse</span>
-					{/if}
-				</button>
-				<button
-					onclick={() => navigate('/settings')}
-					class="flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all w-full
-					{isActive('/settings') 
-						? 'bg-primary-500 text-white' 
-						: 'text-surface-400 hover:bg-surface-800 hover:text-white'}"
-					title="Settings"
-				>
-					<SettingsIcon class="size-5" />
-					{#if !collapsed}
-						<span class="text-sm">Settings</span>
-					{/if}
-				</button>
-			</div>
+			<!-- <button -->
+			<!-- 	onclick={toggleSidebar} -->
+			<!-- 	class="flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-surface-400 hover:bg-surface-800 hover:text-white transition-all w-full" -->
+			<!-- 	title={collapsed ? 'Expand' : 'Collapse'} -->
+			<!-- > -->
+			<!-- 	{#if collapsed} -->
+			<!-- 		<ChevronRightIcon class="size-5" /> -->
+			<!-- 	{:else} -->
+			<!-- 		<ChevronLeftIcon class="size-5" /> -->
+			<!-- 		<span class="text-sm">Collapse</span> -->
+			<!-- 	{/if} -->
+			<!-- </button> -->
 		</div>
 	</aside>
 

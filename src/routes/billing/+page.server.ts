@@ -72,5 +72,19 @@ export const actions: Actions = {
 		}
 
 		return { success: true };
+	},
+
+	delete: async ({ request }) => {
+		const formData = await request.formData();
+		const invoiceId = formData.get('invoiceId') as string;
+
+		if (!invoiceId) {
+			return fail(400, { message: 'Invoice ID required' });
+		}
+
+		await db.delete(invoiceItems).where(eq(invoiceItems.invoiceId, invoiceId));
+		await db.delete(invoices).where(eq(invoices.id, invoiceId));
+
+		return { success: true };
 	}
 };

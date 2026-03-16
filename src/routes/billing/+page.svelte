@@ -6,9 +6,14 @@
 	import FileTextIcon from '@lucide/svelte/icons/file-text';
 	import PlusIcon from '@lucide/svelte/icons/plus';
 	import DownloadIcon from '@lucide/svelte/icons/download';
+	import EyeIcon from '@lucide/svelte/icons/eye';
+	import TrashIcon from '@lucide/svelte/icons/trash';
+	import XIcon from '@lucide/svelte/icons/x';
 
 	let { data } = $props();
 	let showCreateModal = $state(false);
+	let showViewModal = $state(false);
+	let viewInvoice = $state<any>(null);
 	
 	let selectedItems = $state([{ productId: '', quantity: 1 }]);
 
@@ -50,6 +55,16 @@
 		});
 
 		doc.save(`Invoice_${invoice.id}.pdf`);
+	};
+
+	const openViewModal = (invoice: any) => {
+		viewInvoice = invoice;
+		showViewModal = true;
+	};
+
+	const closeViewModal = () => {
+		showViewModal = false;
+		viewInvoice = null;
 	};
 </script>
 
@@ -140,6 +155,22 @@
 					<button class="btn btn-sm variant-soft-primary" onclick={() => generatePDF(invoice)}>
 						<DownloadIcon class="size-4 mr-1" /> PDF
 					</button>
+					<button class="btn btn-sm variant-soft-secondary" onclick={() => openViewModal(invoice)}>
+						<EyeIcon class="size-4 mr-1" /> View
+					</button>
+					<form method="POST" action="?/delete" use:enhance={() => {
+						return async ({ result }) => {
+							if (result.type === 'success') {
+								(window as any).showToast?.('Invoice deleted successfully!', 'success');
+								await invalidateAll();
+							}
+						};
+					}} class="inline">
+						<input type="hidden" name="invoiceId" value={invoice.id} />
+						<button type="submit" class="btn btn-sm variant-soft-error" onclick={(e) => { if (!confirm('Are you sure you want to delete this invoice?')) e.preventDefault(); }}>
+							<TrashIcon class="size-4" />
+						</button>
+					</form>
 				</div>
 			</div>
 		{/each}
@@ -149,4 +180,72 @@
 			</div>
 		{/if}
 	</div>
+
+	{#if showViewModal && viewInvoice}
+		<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" role="dialog" aria-modal="true" aria-label="Invoice details" onclick={closeViewModal} onkeydown={(e) => e.key === 'Escape' && closeViewModal()}>
+			<div class="card p-6 bg-surface-800 border border-surface-700 shadow-xl rounded-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto" role="document" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
+				<div class="flex justify-between items-start mb-6">
+					<div>
+						<h2 class="h2 text-white">Invoice Details</h2>
+						<p class="text-surface-400 text-sm">ID: {viewInvoice.id}</p>
+					</div>
+					<button class="btn-icon variant-soft" onclick={closeViewModal}>
+						<XIcon class="size-5" />
+					</button>
+				</div>
+
+				<div class="grid grid-cols-2 gap-4 mb-6">
+					<div>
+						<p class="text-xs text-surface-500 uppercase tracking-wider">Customer</p>
+						<p class="text-white font-medium">{viewInvoice.customerName}</p>
+					</div>
+					<div>
+						<p class="text-xs text-surface-500 uppercase tracking-wider">Date</p>
+						<p class="text-white">{new Date(viewInvoice.date).toLocaleDateString()}</p>
+					</div>
+					<div>
+						<p class="text-xs text-surface-500 uppercase tracking-wider">Status</p>
+						<span class="badge variant-filled-success capitalize">{viewInvoice.status}</span>
+					</div>
+					<div>
+						<p class="text-xs text-surface-500 uppercase tracking-wider">Total Amount</p>
+						<p class="text-white font-bold text-xl">${(viewInvoice.totalAmount / 100).toFixed(2)}</p>
+					</div>
+				</div>
+
+				<div class="border-t border-surface-700 pt-4">
+					<h3 class="font-bold text-white mb-3">Items</h3>
+					<div class="overflow-x-auto">
+						<table class="table table-hover">
+							<thead>
+								<tr>
+									<th class="text-surface-400">Product</th>
+									<th class="text-surface-400">Quantity</th>
+									<th class="text-surface-400">Unit Price</th>
+									<th class="text-surface-400">Total</th>
+								</tr>
+							</thead>
+							<tbody>
+								{#each viewInvoice.items as item}
+									<tr class="border-surface-700">
+										<td class="text-white">{data.products.find(p => p.id === item.productId)?.name || 'Unknown'}</td>
+										<td class="text-white">{item.quantity}</td>
+										<td class="text-white">${(item.price / 100).toFixed(2)}</td>
+										<td class="text-white">${((item.price * item.quantity) / 100).toFixed(2)}</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				<div class="flex justify-end gap-2 mt-6 border-t border-surface-700 pt-4">
+					<button class="btn variant-soft" onclick={closeViewModal}>Close</button>
+					<button class="btn variant-filled-primary" onclick={() => { generatePDF(viewInvoice); }}>
+						<DownloadIcon class="size-4 mr-2" /> Download PDF
+					</button>
+				</div>
+			</div>
+		</div>
+	{/if}
 </div>

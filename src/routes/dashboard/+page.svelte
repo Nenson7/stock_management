@@ -1,4 +1,4 @@
-<script lang="ts">
+<script>
 	import DollarSignIcon from '@lucide/svelte/icons/dollar-sign';
 	import PackageIcon from '@lucide/svelte/icons/package';
 	import ShoppingCartIcon from '@lucide/svelte/icons/shopping-cart';
