@@ -23,7 +23,7 @@ export const load: PageServerLoad = async () => {
 	// Recent sales (last 7 days)
 	const recentSales = await db.select()
 		.from(invoices)
-		.where(sql`${invoices.date} > date('now', '-7 days')`)
+		.where(sql`${invoices.date} > now() - interval '7 days'`)
 		.orderBy(desc(invoices.date));
 
 	return {

@@ -1,18 +1,26 @@
+import 'dotenv/config';
 import { db } from '../src/lib/db';
 import { users, products, invoices, invoiceItems } from '../src/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 async function seed() {
 	console.log('Seeding database...');
 
-	// Create admin user
-	const adminId = crypto.randomUUID();
-	await db.insert(users).values({
-		id: adminId,
-		username: 'admin',
-		password: await Bun.password.hash('admin'),
-		role: 'admin',
-		name: 'Administrator'
-	}).onConflictDoNothing();
+	// Get or create admin user
+	let adminId: string = crypto.randomUUID();
+	const existingAdmin = await db.select().from(users).where(eq(users.username, 'admin')).limit(1);
+	
+	if (existingAdmin.length > 0) {
+		adminId = existingAdmin[0].id;
+	} else {
+		await db.insert(users).values({
+			id: adminId,
+			username: 'admin',
+			password: await Bun.password.hash('admin'),
+			role: 'admin',
+			name: 'Administrator'
+		});
+	}
 
     const mockProducts = [
         { id: '1', name: 'Premium Coffee Beans', price: 1200, quantity: 50, category: 'Beverages' },
@@ -71,7 +79,7 @@ async function seed() {
 			invoiceId: invoiceId,
 			productId: '1', // Just pick one
 			quantity: r.items,
-			price: r.amount / r.items
+			price: Math.round(r.amount / r.items)
 		}).onConflictDoNothing();
 	}
 
