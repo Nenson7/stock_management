@@ -1,45 +1,45 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
-import { relations, sql } from 'drizzle-orm';
+import { pgTable, text, integer, timestamp } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
 
-export const users = sqliteTable('users', {
+export const users = pgTable('users', {
 	id: text('id').primaryKey(),
 	username: text('username').notNull().unique(),
 	password: text('password').notNull(),
 	role: text('role', { enum: ['admin', 'user'] }).notNull().default('user'),
 	name: text('name'),
-	createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
-	updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`)
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
 });
 
-export const products = sqliteTable('products', {
+export const products = pgTable('products', {
 	id: text('id').primaryKey(),
 	name: text('name').notNull(),
-	price: integer('price').notNull(), // in cents or whole units
+	price: integer('price').notNull(),
 	quantity: integer('quantity').notNull(),
 	category: text('category').notNull(),
 	description: text('description'),
-	createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
-	updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`)
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
 });
 
-export const invoices = sqliteTable('invoices', {
+export const invoices = pgTable('invoices', {
 	id: text('id').primaryKey(),
 	customerName: text('customer_name').notNull(),
-	date: integer('date', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+	date: timestamp('date', { withTimezone: true }).notNull().defaultNow(),
 	totalAmount: integer('total_amount').notNull(),
 	status: text('status', { enum: ['paid', 'pending', 'overdue'] }).notNull().default('pending'),
 	userId: text('user_id').references(() => users.id),
-	createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
-	updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`)
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+	updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
 });
 
-export const invoiceItems = sqliteTable('invoice_items', {
+export const invoiceItems = pgTable('invoice_items', {
 	id: text('id').primaryKey(),
 	invoiceId: text('invoice_id').notNull().references(() => invoices.id),
 	productId: text('product_id').notNull().references(() => products.id),
 	quantity: integer('quantity').notNull(),
-	price: integer('price').notNull(), // price at time of sale
-	createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`)
+	price: integer('price').notNull(),
+	createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow()
 });
 
 export const usersRelations = relations(users, ({ many }) => ({

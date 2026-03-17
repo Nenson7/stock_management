@@ -37,9 +37,11 @@
 	"dependencies": {
 		"@libsql/client": "^0.17.0",
 		"@lucide/svelte": "^0.577.0",
+		"@neondatabase/serverless": "^1.0.2",
 		"bcryptjs": "^3.0.3",
 		"drizzle-orm": "^0.45.1",
 		"jspdf": "^4.2.0",
-		"jspdf-autotable": "^5.0.7"
+		"jspdf-autotable": "^5.0.7",
+		"postgres": "^3.4.8"
 	}
 }
